@@ -98,8 +98,86 @@ def self.hcluster(rows)
 end
 
 
-	
-# end
+
+# randomly creates a set of clusters within the ranges of each of the variables. 
+# With every iteration, the rows are each assigned to one of the centroids, 
+# and the centroid data is updated to the average of all its assignees. 
+  def self.kcluster(rows, k = 4, iterations = 100)
+    # Determine the minimum and maximum values for each point
+    ranges = []
+    for i in 0...rows[0].size
+	    for row in rows
+	    	ranges << [row.min, row.max]
+	    end
+	  end
+
+    # Create k randomly placed centroids
+    clusters = []
+    for i in 0...rows[0].size
+    	for j in 0...k
+    		clusters[j] ||= []
+    		clusters[j] << (rand() * (ranges[i][1] - ranges[i][0]) + ranges[i][0])
+    	end
+    end
+
+    lastmatches = nil
+
+    for t in 0...iterations
+    	puts "iteration #{t+1}"
+      bestmatches = []
+      for i in 0...k
+      	bestmatches << []
+      end
+
+      # Find which centroid is the closest for each row
+      for j in 0...rows.size
+      	row = rows[j]
+        bestmatch = 0
+        for i in 0...k
+        	d = pearson(clusters[i], row)
+        	if d < pearson(clusters[bestmatch], row)
+        	  bestmatch = i
+        	end
+        end
+        bestmatches[bestmatch] << j
+      end
+
+      # If the results are the same as last time, this is complete
+      break if bestmatches == lastmatches
+      lastmatches = bestmatches
+
+			# Move the centroids to the average of their members
+      for i in 0...k
+        avgs = [0.0] * rows[0].size
+        if bestmatches[i].size > 0
+          for rowid in bestmatches[i]
+            for m in 0...rows[rowid].size
+              avgs[m] += rows[rowid][m]
+            end
+          end
+          for j in 0...avgs.size
+            avgs[j] /= bestmatches[i].size
+          end
+          clusters[i] = avgs
+        end
+      end
+    end
+
+    return bestmatches
+  end
+
+
+  # The Tanimoto coefficient is the ratio of the intersection set 
+  # (only the items that are in both sets) to the union set (all the items in either set).
+  # this is useful in case of datasets of 0's and 1's instead of counts
+  def self.tanimoto(v1, v2)
+       c1,c2,shr=0,0,0
+       for i in range(len(v1)):
+         if v1[i]!=0: c1+=1 # in v1
+         if v2[i]!=0: c2+=1 # in v2
+         if v1[i]!=0 and v2[i]!=0: shr+=1 # in both
+       return 1.0-(float(shr)/(c1+c2-shr))
+
 
 end
 

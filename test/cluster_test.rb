@@ -45,6 +45,19 @@ class ClusterTest  < Test::Unit::TestCase
     return [rownames, colnames, data]
   end
 
+  def test_kcluster
+    blognames, words, data = read_blogdata_file
+    kclust = Cluster.kcluster(data, 10, 5)
+
+    for k in 0...kclust.size
+      puts "Cluster #{k+1}: "
+      for i in 0...kclust[k].size
+        puts blognames[kclust[k][i]]
+      end
+      puts ""
+    end
+  end
+
 
   def printclust(clust, labels = nil, n = 0)
     # indent to make a hierarchy layout
