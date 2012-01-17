@@ -53,7 +53,7 @@ end
 
 # clusters similar elements (calculated by the pearson distance) into clusters,
 # grouping up until there's only one, big cluster
-def self.hcluster(rows)
+def self.hcluster(rows, func = :pearson)
 	distances = {}
 	currentclustid = -1
 	
@@ -63,14 +63,14 @@ def self.hcluster(rows)
 
   while clust.size > 1
     lowestpair = [0,1]
-    closest = pearson(clust[0].vec, clust[1].vec)
+    closest = method(func).call(clust[0].vec, clust[1].vec)
 
     # loop through every pair looking for the smallest distance
     for i in 0...clust.size
       for j in i+1...clust.size
         # distances is the cache of distance calculations
         if !distances.include?([clust[i].id, clust[j].id])
-          distances[[clust[i].id, clust[j].id]] = pearson(clust[i].vec, clust[j].vec)
+          distances[[clust[i].id, clust[j].id]] = method(func).call(clust[i].vec, clust[j].vec)
         end
         d = distances[[clust[i].id, clust[j].id]]
         if d < closest
@@ -102,7 +102,7 @@ end
 # randomly creates a set of clusters within the ranges of each of the variables. 
 # With every iteration, the rows are each assigned to one of the centroids, 
 # and the centroid data is updated to the average of all its assignees. 
-  def self.kcluster(rows, k = 4, iterations = 100)
+  def self.kcluster(rows, k = 4, iterations = 100, func = :pearson)
     # Determine the minimum and maximum values for each point
     ranges = []
     for i in 0...rows[0].size
@@ -134,8 +134,8 @@ end
       	row = rows[j]
         bestmatch = 0
         for i in 0...k
-        	d = pearson(clusters[i], row)
-        	if d < pearson(clusters[bestmatch], row)
+        	d = method(func).call(clusters[i], row)
+        	if d < method(func).call(clusters[bestmatch], row)
         	  bestmatch = i
         	end
         end
@@ -166,21 +166,21 @@ end
     return bestmatches
   end
 
-
   # The Tanimoto coefficient is the ratio of the intersection set 
   # (only the items that are in both sets) to the union set (all the items in either set).
-  # this is useful in case of datasets of 0's and 1's instead of counts
-  def self.tanimoto(v1, v2)
-       c1,c2,shr=0,0,0
-       for i in range(len(v1)):
-         if v1[i]!=0: c1+=1 # in v1
-         if v2[i]!=0: c2+=1 # in v2
-         if v1[i]!=0 and v2[i]!=0: shr+=1 # in both
-       return 1.0-(float(shr)/(c1+c2-shr))
-
+  # this is a useful distance calculation method in case of datasets of 0's and 1's instead of counts
+  # (where Pearson doesn't work as well)
+	def self.tanimoto(v1, v2)
+		c1, c2, shr = 0, 0, 0
+		for i in 0...v1.size
+			c1 += 1 if v1[i] != 0
+			c2 += 1 if v2[i] != 0
+			shr += 1 if v1[i] != 0 && v2[i] != 0
+		end
+		return 1.0 - shr.to_f/(c1+c2-shr)
+	end
 
 end
-
 
 # each cluster of things is a cluster of clusters
 class Bicluster < Struct.new(:id, :vec, :left, :right, :distance)

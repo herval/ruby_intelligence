@@ -23,13 +23,32 @@ class ClusterTest  < Test::Unit::TestCase
   end
 
   def test_hcluster
-    blognames, words, data = read_blogdata_file
+    blognames, words, data = read_data_file("blogdata")
     clust = Cluster.hcluster(data)
     printclust(clust, blognames)
   end
 
-  def read_blogdata_file
-    file = File.open("test/blogdata.txt")
+  def test_kcluster
+    blognames, words, data = read_data_file("blogdata")
+    kclust = Cluster.kcluster(data, 10, 5)
+
+    for k in 0...kclust.size
+      puts "Cluster #{k+1}: "
+      for i in 0...kclust[k].size
+        puts blognames[kclust[k][i]]
+      end
+      puts ""
+    end
+  end
+
+  def test_tanimoto_hcluster
+    blognames, words, data = read_data_file("zebo")
+    clust = Cluster.hcluster(data, :tanimoto)
+    printclust(clust, blognames)
+  end
+
+  def read_data_file(name)
+    file = File.open("test/#{name}.txt")
     
     header = file.gets
     colnames = header.split("\t")[1..-1]
@@ -44,20 +63,6 @@ class ClusterTest  < Test::Unit::TestCase
 
     return [rownames, colnames, data]
   end
-
-  def test_kcluster
-    blognames, words, data = read_blogdata_file
-    kclust = Cluster.kcluster(data, 10, 5)
-
-    for k in 0...kclust.size
-      puts "Cluster #{k+1}: "
-      for i in 0...kclust[k].size
-        puts blognames[kclust[k][i]]
-      end
-      puts ""
-    end
-  end
-
 
   def printclust(clust, labels = nil, n = 0)
     # indent to make a hierarchy layout
