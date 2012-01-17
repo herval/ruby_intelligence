@@ -14,7 +14,8 @@ module Recommendation
     # Add up the squares of all the differences
     sum_of_squares = 0.0
     for item in prefs[person1].keys
-      sum_of_squares += ((prefs[person1][item]-prefs[person2][item]) ** 2) if !prefs[person2].keys.include?(item)
+      next if !prefs[person2].keys.include?(item)
+      sum_of_squares += ((prefs[person1][item]-prefs[person2][item]) ** 2)
     end
     return 1.0/(1.0+sum_of_squares)
   end

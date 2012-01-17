@@ -97,8 +97,6 @@ def self.hcluster(rows, func = :pearson)
   return clust[0]
 end
 
-
-
 # randomly creates a set of clusters within the ranges of each of the variables. 
 # With every iteration, the rows are each assigned to one of the centroids, 
 # and the centroid data is updated to the average of all its assignees. 
@@ -124,10 +122,7 @@ end
 
     for t in 0...iterations
     	puts "iteration #{t+1}"
-      bestmatches = []
-      for i in 0...k
-      	bestmatches << []
-      end
+      bestmatches = [[]] * k
 
       # Find which centroid is the closest for each row
       for j in 0...rows.size
